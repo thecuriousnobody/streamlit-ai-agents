@@ -3,8 +3,7 @@ from crewai import Agent, Task, Crew, Process, LLM
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import secrets
-from search_tools import search_api_tool, google_scholar_tool,news_archive_tool
+from search_tools import search_api_tool, google_scholar_tool, news_archive_tool
 
 # Set page config
 st.set_page_config(
@@ -12,10 +11,25 @@ st.set_page_config(
     page_icon="📚",
     layout="wide"
 )
-ClaudeSonnet = LLM(
-    api_key=secrets.ANTHROPIC_API_KEY,
-    model="claude-3-5-sonnet-20241022",
-)
+# Initialize LLM with API key from Streamlit secrets
+try:
+    api_key = st.secrets["ANTHROPIC_API_KEY"]
+    ClaudeSonnet = LLM(
+        api_key=api_key,
+        model="claude-3-5-sonnet-20241022",
+    )
+except FileNotFoundError:
+    st.error("""
+        Please set up your API keys in Streamlit Cloud:
+        1. Go to your app settings in Streamlit Cloud
+        2. Navigate to the Secrets section
+        3. Add the following secrets:
+        ```toml
+        ANTHROPIC_API_KEY = "your-anthropic-api-key"
+        SEARCH_API_KEY = "your-searchapi-key"
+        ```
+    """)
+    st.stop()
 
 def create_agents_and_tasks(research_topic):
     historical_analyst = Agent(
