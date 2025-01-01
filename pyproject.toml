@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "streamlit-ai-agents"
+version = "0.1.0"
+description = "AI-powered podcast guest finder"
+authors = ["Rajeev Kumar"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<=3.13"
+streamlit = "^1.41.1"
+crewai = "^0.86.0"
+langchain-openai = "^0.2.14"
+langchain-anthropic = "^0.3.1"
+langchain-community = "^0.3.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
