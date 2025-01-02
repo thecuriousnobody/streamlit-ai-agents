@@ -94,7 +94,8 @@ def run_research(research_topic, progress_containers):
         agents=agents,
         tasks=tasks,
         verbose=True,
-        process=Process.sequential
+        process=Process.sequential,
+        memory=False  # Disable memory/vector store functionality
     )
 
     def process_output(output):

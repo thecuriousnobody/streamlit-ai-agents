@@ -22,8 +22,6 @@ wheels/
 *.egg
 
 # Virtual Environment
-.env
-.venv
 venv/
 ENV/
 
@@ -36,5 +34,6 @@ ENV/
 # Streamlit
 .streamlit/secrets.toml
 
-# Poetry
-poetry.lock
+# OS
+.DS_Store
+Thumbs.db
