@@ -7,6 +7,7 @@ from crewai.memory import (
     LTMSQLiteStorage,
     CustomRAGStorage
 )
+from mem0 import MemoryClient
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,13 +19,18 @@ st.set_page_config(
     page_icon="📚",
     layout="wide"
 )
-# Initialize LLM with API key from Streamlit secrets
+# Initialize LLM and Mem0 with API keys from Streamlit secrets
 try:
-    api_key = st.secrets["ANTHROPIC_API_KEY"]
+    anthropic_api_key = st.secrets["ANTHROPIC_API_KEY"]
+    mem0_api_key = st.secrets["MEM0_API_KEY"]
+    
     ClaudeSonnet = LLM(
-        api_key=api_key,
+        api_key=anthropic_api_key,
         model="claude-3-5-sonnet-20241022"
     )
+    
+    # Initialize Mem0 client
+    mem0_client = MemoryClient(api_key=mem0_api_key)
 except FileNotFoundError:
     st.error("""
         Please set up your API keys in Streamlit Cloud:
@@ -34,6 +40,7 @@ except FileNotFoundError:
         ```toml
         ANTHROPIC_API_KEY = "your-anthropic-api-key"
         SEARCH_API_KEY = "your-searchapi-key"
+        MEM0_API_KEY = "your-mem0-api-key"
         ```
     """)
     st.stop()
@@ -97,12 +104,23 @@ def run_research(research_topic, progress_containers):
     with progress_containers["historical"].status("🔄 Analyzing historical context..."):
         progress_containers["historical"].write("This may take a few minutes...")
     
+    # Store user's research topic in Mem0
+    messages = [
+        {"role": "user", "content": f"Research topic: {research_topic}"},
+        {"role": "assistant", "content": f"I'll help you research about {research_topic} in South Asian history."}
+    ]
+    mem0_client.add(messages, user_id=st.session_state.get("user_id", "default_user"))
+    
     crew = Crew(
         agents=agents,
         tasks=tasks,
         verbose=True,
         process=Process.sequential,
-        memory=True  # Enable built-in memory functionality
+        memory=True,
+        memory_config={
+            "provider": "mem0",
+            "config": {"user_id": st.session_state.get("user_id", "default_user")},
+        }
     )
 
     def process_output(output):
@@ -132,6 +150,10 @@ def run_research(research_topic, progress_containers):
     # Convert CrewOutput to string before processing
     output_str = str(output)
     return process_output(output_str)
+
+# Initialize session state for user ID if not exists
+if "user_id" not in st.session_state:
+    st.session_state.user_id = f"user_{os.urandom(4).hex()}"
 
 # Streamlit UI
 st.title("📚 South Asian History Research")
