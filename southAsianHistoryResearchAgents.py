@@ -1,5 +1,12 @@
 import streamlit as st
 from crewai import Agent, Task, Crew, Process, LLM
+from crewai.memory import (
+    EnhanceLongTermMemory,
+    EnhanceShortTermMemory,
+    EnhanceEntityMemory,
+    LTMSQLiteStorage,
+    CustomRAGStorage
+)
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -95,11 +102,7 @@ def run_research(research_topic, progress_containers):
         tasks=tasks,
         verbose=True,
         process=Process.sequential,
-        memory=True,  # Enable memory
-        memory_config={
-            "type": "faiss",  # Use FAISS instead of ChromaDB
-            "collection_name": "research_memory"
-        }
+        memory=True  # Enable built-in memory functionality
     )
 
     def process_output(output):
