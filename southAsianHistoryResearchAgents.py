@@ -1,5 +1,6 @@
 import streamlit as st
-from crewai import Agent, Task, Crew, Process, LLM
+from minimal_crewai import MinimalAgent as Agent, MinimalTask as Task, MinimalCrew as Crew
+from langchain_anthropic import ChatAnthropic
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -14,9 +15,10 @@ st.set_page_config(
 # Initialize LLM with API key from Streamlit secrets
 try:
     api_key = st.secrets["ANTHROPIC_API_KEY"]
-    ClaudeSonnet = LLM(
-        api_key=api_key,
-        model="claude-3-5-sonnet-20241022",
+    ClaudeSonnet = ChatAnthropic(
+        anthropic_api_key=api_key,
+        model="claude-3-sonnet-20240229",
+        temperature=0.7
     )
 except FileNotFoundError:
     st.error("""
@@ -93,9 +95,7 @@ def run_research(research_topic, progress_containers):
     crew = Crew(
         agents=agents,
         tasks=tasks,
-        verbose=True,
-        process=Process.sequential,
-        memory=False  # Disable memory/vector store functionality
+        verbose=True
     )
 
     def process_output(output):
