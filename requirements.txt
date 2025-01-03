@@ -8,6 +8,5 @@ langchain-community>=0.3.13
 requests>=2.31.0
 python-dotenv>=1.0.0
 mem0ai>=0.1.0
-chromadb
-chromadb-pysqlite3
+
 
