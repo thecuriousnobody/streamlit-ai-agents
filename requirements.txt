@@ -9,4 +9,5 @@ requests>=2.31.0
 python-dotenv>=1.0.0
 chromadb>=0.5.18
 mem0ai>=0.1.0
+chromadb-pysqlite3
 
