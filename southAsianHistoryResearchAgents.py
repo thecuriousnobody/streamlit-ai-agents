@@ -1,20 +1,13 @@
 import streamlit as st
 from crewai import Agent, Task, Crew, Process, LLM
-from crewai.memory import (
-    EnhanceLongTermMemory,
-    EnhanceShortTermMemory,
-    EnhanceEntityMemory,
-    LTMSQLiteStorage,
-    CustomRAGStorage
-)
 from mem0 import MemoryClient
 import os
+__import__('pysqlite3')
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from search_tools import search_api_tool, google_scholar_tool, news_archive_tool
-__import__('pysqlite3')
-import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 
 # Set page config
 st.set_page_config(
@@ -119,11 +112,8 @@ def run_research(research_topic, progress_containers):
         tasks=tasks,
         verbose=True,
         process=Process.sequential,
-        memory=True,
-        memory_config={
-            "provider": "mem0",
-            "config": {"user_id": st.session_state.get("user_id", "default_user")},
-        }
+        memory=False,
+        planning=True
     )
 
     def process_output(output):
