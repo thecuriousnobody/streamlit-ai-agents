@@ -1,10 +1,10 @@
 from langchain_anthropic import ChatAnthropic
 import sys
 import os
+import streamlit as st
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import secrets
 
-os.environ["ANTHROPIC_API_KEY"] = secrets.ANTHROPIC_API_KEY
+os.environ["ANTHROPIC_API_KEY"] = st.secrets["ANTHROPIC_API_KEY"]
 
 
 

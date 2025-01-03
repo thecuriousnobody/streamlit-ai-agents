@@ -109,8 +109,7 @@ def run_research(research_topic, progress_containers):
         tasks=tasks,
         verbose=True,
         process=Process.sequential,
-        memory=False,
-        planning=True
+        memory=False
     )
 
     def process_output(output):
