@@ -1,13 +1,10 @@
 import streamlit as st
+import os
 from crewai import Agent, Task, Crew, Process, LLM
 from mem0 import MemoryClient
-import os
-__import__('pysqlite3')
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from search_tools import search_api_tool, google_scholar_tool, news_archive_tool
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
 
 # Set page config
 st.set_page_config(
