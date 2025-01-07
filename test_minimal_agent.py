@@ -343,3 +343,10 @@ def main():
             st.error("Research failed. Please check the error messages above.")
 
 if __name__ == "__main__":
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        st.warning("python-dotenv not installed. Environment variables must be set manually.")
+    
+    main()
