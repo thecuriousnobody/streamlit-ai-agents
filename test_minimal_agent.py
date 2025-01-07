@@ -343,4 +343,3 @@ def main():
             st.error("Research failed. Please check the error messages above.")
 
 if __name__ == "__main__":
-    main()

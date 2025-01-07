@@ -17,17 +17,14 @@ st.set_page_config(
     page_icon="📚",
     layout="wide"
 )
-# Initialize LLM and Mem0 with API keys from Streamlit secrets
+# Initialize LLM and Mem0 with API keys from environment variables
 try:
-    anthropic_api_key = st.secrets["ANTHROPIC_API_KEY"]
-    mem0_api_key = st.secrets["MEM0_API_KEY"]
-    
     # Initialize LLM with retry logic
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def get_llm_response(*args, **kwargs):
         return ChatAnthropic(
             model="claude-3-5-sonnet-20241022",
-            anthropic_api_key=anthropic_api_key,
+            anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
             max_tokens=8192,
             temperature=0.6
         )
@@ -35,7 +32,7 @@ try:
     ClaudeSonnet = get_llm_response()
     
     # Initialize Mem0 client
-    mem0_client = MemoryClient(api_key=mem0_api_key)
+    mem0_client = MemoryClient(api_key=os.getenv("MEM0_API_KEY"))
 except FileNotFoundError:
     st.error("""
         Please set up your API keys in Streamlit Cloud:

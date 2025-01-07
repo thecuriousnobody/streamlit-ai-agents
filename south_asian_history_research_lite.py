@@ -14,40 +14,34 @@ from search_tools import (
     legal_database_tool
 )
 
-os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
-
-api_key = os.getenv("OPENAI_API_KEY")
-groq_llm = ChatGroq(
-    model="groq/llama-3.1-70b-versatile",
-    temperature=0.7,
-    groq_api_key=st.secrets["GROQ_API_KEY"],
-    verbose=True
-)
-
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 try:
-    anthropic_api_key = st.secrets["ANTHROPIC_API_KEY"]
-    
     # Initialize LLM instances
     ClaudeSonnet = LLM(
         model="claude-3-5-sonnet-20241022",
-        api_key=anthropic_api_key,
+        api_key=os.getenv("ANTHROPIC_API_KEY"),
         max_tokens=8192,
         temperature=0.6
     )
     
     ClaudeHaiku = LLM(
         model="claude-3-5-haiku-20241022",
-        api_key=anthropic_api_key,
+        api_key=os.getenv("ANTHROPIC_API_KEY"),
         max_tokens=8192,
         temperature=0.6
     )
     
+    groq_llm = ChatGroq(
+        model="groq/llama-3.1-70b-versatile",
+        temperature=0.7,
+        groq_api_key=os.getenv("GROQ_API_KEY"),
+        verbose=True
+    )
 
-except FileNotFoundError:
+except Exception as e:
     st.error("""
         Please set up your API keys in Streamlit Cloud:
         1. Go to your app settings in Streamlit Cloud

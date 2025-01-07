@@ -3,10 +3,8 @@ import os
 import sys
 import streamlit as st
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-groq_api_key = st.secrets["GROQ_API_KEY"]
-
 client = Groq(
-    api_key=groq_api_key,
+    api_key=os.getenv("GROQ_API_KEY"),
 )
 
 chat_completion = client.chat.completions.create(
