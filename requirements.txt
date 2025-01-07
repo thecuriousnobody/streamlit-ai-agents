@@ -1,12 +1,12 @@
 pysqlite3-binary
 streamlit>=1.41.1
-crewai>=0.86.0
-langchain>=0.3.13
-langchain-openai>=0.2.14
-langchain-anthropic>=0.3.1
-langchain-community>=0.3.13
+crewai>=0.11.0
+anthropic==0.18.1
+langchain==0.1.12
+langchain-anthropic==0.1.4
+langchain-community==0.0.28
 requests>=2.31.0
 python-dotenv>=1.0.0
 mem0ai>=0.1.0
 
-
+reflex==0.6.7

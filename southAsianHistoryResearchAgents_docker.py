@@ -1,15 +1,13 @@
 import streamlit as st
 import os
-from crewai import Agent, Task, Crew, Process
-from langchain_anthropic import ChatAnthropic
-from tenacity import retry, stop_after_attempt, wait_exponential
+from crewai import Agent, Task, Crew, Process, LLM
 from mem0 import MemoryClient
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from search_tools import search_api_tool, google_scholar_tool, news_archive_tool
-# __import__('pysqlite3')
-# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
+from search_tools_docker import search_api_tool, google_scholar_tool, news_archive_tool
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+import pysqlite3 as sqlite3
 
 # Set page config
 st.set_page_config(
@@ -17,38 +15,39 @@ st.set_page_config(
     page_icon="📚",
     layout="wide"
 )
-# Initialize LLM and Mem0 with API keys from Streamlit secrets
-try:
-    anthropic_api_key = st.secrets["ANTHROPIC_API_KEY"]
-    mem0_api_key = st.secrets["MEM0_API_KEY"]
-    
-    # Initialize LLM with retry logic
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-    def get_llm_response(*args, **kwargs):
-        return ChatAnthropic(
-            model="claude-3-5-sonnet-20241022",
-            anthropic_api_key=anthropic_api_key,
-            max_tokens=8192,
-            temperature=0.6
-        )
-    
-    ClaudeSonnet = get_llm_response()
-    
-    # Initialize Mem0 client
-    mem0_client = MemoryClient(api_key=mem0_api_key)
-except FileNotFoundError:
+
+# Initialize LLM and Mem0 with API keys from environment variables
+anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+mem0_api_key = os.getenv("MEM0_API_KEY")
+
+if not anthropic_api_key or not mem0_api_key:
     st.error("""
-        Please set up your API keys in Streamlit Cloud:
-        1. Go to your app settings in Streamlit Cloud
-        2. Navigate to the Secrets section
-        3. Add the following secrets:
-        ```toml
-        ANTHROPIC_API_KEY = "your-anthropic-api-key"
-        SEARCH_API_KEY = "your-searchapi-key"
-        MEM0_API_KEY = "your-mem0-api-key"
-        ```
+        Please set up your API keys as environment variables:
+        
+        Required environment variables:
+        - ANTHROPIC_API_KEY
+        - MEM0_API_KEY
+        - SEARCH_API_KEY
+        
+        These should be provided when running the Docker container.
     """)
     st.stop()
+
+from langchain_anthropic import ChatAnthropic
+
+# Initialize the Anthropic chat model
+base_model = ChatAnthropic(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=8192,
+    temperature=0.6,
+    anthropic_api_key=anthropic_api_key
+)
+
+# Wrap it in CrewAI's LLM
+ClaudeSonnet = LLM(base_llm=base_model)
+
+# Initialize Mem0 client
+mem0_client = MemoryClient(api_key=mem0_api_key)
 
 def create_agents_and_tasks(research_topic):
     historical_analyst = Agent(
@@ -121,9 +120,7 @@ def run_research(research_topic, progress_containers):
         tasks=tasks,
         verbose=True,
         process=Process.sequential,
-        memory=False,
-        max_consecutive_auto_reply=3,  # Limit consecutive auto-replies
-        throttle_limit=60  # Add rate limiting (1 request per minute)
+        memory=False
     )
 
     def process_output(output):

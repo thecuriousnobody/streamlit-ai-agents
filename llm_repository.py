@@ -15,7 +15,7 @@ ClaudeSonnet = ChatAnthropic(
 )
 
 ClaudeHaiku = ChatAnthropic(
-    model="claude-3-haiku-20240307",
+    model="claude-3-5-haiku-20241022",
     max_tokens=8192,
     temperature=0.6
 )

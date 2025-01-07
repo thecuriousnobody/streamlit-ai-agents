@@ -1,6 +1,5 @@
 import os
 import sys
-import streamlit as st
 from crewai import Agent, Task, Crew, Process, LLM
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from search_tools import search_api_tool, google_scholar_tool, news_archive_tool
@@ -17,41 +16,30 @@ class ResearchAgent:
         try:
             tool_outputs = []
             
-            # Progress bar for tool execution
-            progress_bar = st.progress(0)
-            total_tools = len(self.tools)
-            
             # Gather information using tools
-            for idx, tool in enumerate(self.tools):
+            for tool in self.tools:
                 try:
-                    with st.spinner(f'Using {tool.name}...'):
-                        query = f"{task} {self.goal}"
-                        if tool.name == "Google Scholar Search":
-                            results = tool.func(query, num_results=5)
-                            formatted_result = self._format_scholar_results(results)
-                        elif tool.name == "News Archive Search":
-                            results = tool.func(query, start_year=1900)
-                            formatted_result = self._format_news_results(results)
-                        else:
-                            formatted_result = tool.func(query)
-                        
-                        tool_outputs.append(f"\n{tool.name} Results:\n{formatted_result}")
-                        
-                        # Update progress
-                        progress = (idx + 1) / total_tools
-                        progress_bar.progress(progress)
-                        
+                    query = f"{task} {self.goal}"
+                    if tool.name == "Google Scholar Search":
+                        results = tool.func(query, num_results=5)
+                        formatted_result = self._format_scholar_results(results)
+                    elif tool.name == "News Archive Search":
+                        results = tool.func(query, start_year=1900)
+                        formatted_result = self._format_news_results(results)
+                    else:
+                        formatted_result = tool.func(query)
+                    
+                    tool_outputs.append(f"\n{tool.name} Results:\n{formatted_result}")
                 except Exception as e:
                     tool_outputs.append(f"Error with {tool.name}: {str(e)}")
             
             # Use LLM to analyze and synthesize the results
-            with st.spinner('Analyzing results...'):
-                if self.llm:
-                    analysis = self._llm_analysis(task, tool_outputs)
-                else:
-                    analysis = self._compile_analysis(task, tool_outputs)
-                    
-                return analysis
+            if self.llm:
+                analysis = self._llm_analysis(task, tool_outputs)
+            else:
+                analysis = self._compile_analysis(task, tool_outputs)
+                
+            return analysis
             
         except Exception as e:
             return f"Error during research: {str(e)}"
@@ -101,9 +89,9 @@ class ResearchAgent:
         Citations: {result.get('citations', 'N/A')}
         Snippet: {result.get('snippet', 'N/A')}
         """
-            formatted.append(entry)
+        formatted.append(entry)
         return "\n".join(formatted)
-    
+            
     def _format_news_results(self, results):
         formatted = []
         for result in results:
@@ -113,7 +101,7 @@ class ResearchAgent:
         Date: {result.get('date', 'N/A')}
         Snippet: {result.get('snippet', 'N/A')}
         """
-            formatted.append(entry)
+        formatted.append(entry)
         return "\n".join(formatted)
     
     def _compile_analysis(self, task, tool_outputs):
@@ -128,6 +116,10 @@ class ResearchAgent:
 def create_agents_and_tasks(research_topic):
     # Initialize LLM if API key is available
     try:
+        ClaudeSonnet = LLM(
+            api_key=os.getenv("ANTHROPIC_API_KEY"),
+            model="claude-3-5-sonnet-20241022"
+        )
         ClaudeHaiku = LLM(
             model="claude-3-5-haiku-20241022",
             api_key=os.getenv("ANTHROPIC_API_KEY"),
@@ -135,7 +127,7 @@ def create_agents_and_tasks(research_topic):
             temperature=0.6
         )
     except Exception as e:
-        st.error(f"Could not initialize LLM: {str(e)}")
+        print(f"Could not initialize LLM: {str(e)}")
         return None, None
 
     # Create agents with specific tool combinations
@@ -261,86 +253,46 @@ def create_agents_and_tasks(research_topic):
 
 def conduct_research(research_topic):
     """Main research function"""
-    with st.spinner('Initializing research agents...'):
-        agents, tasks = create_agents_and_tasks(research_topic)
-        if not agents or not tasks:
-            st.error("Failed to create agents and tasks")
-            return None
-        
-        crew = Crew(
-            agents=agents,
-            tasks=tasks,
-            verbose=True,
-            process=Process.sequential,
-            memory=False,
-            max_rpm=30
-        )
-    
-    try:
-        with st.spinner('Conducting research...'):
-            result = crew.kickoff()
-            
-            # Save results to file
-            output_dir = "research_output"
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
-                
-            filename = f"{research_topic.replace(' ', '_')}_research.txt"
-            filepath = os.path.join(output_dir, filename)
-            
-            with open(filepath, 'w', encoding='utf-8') as f:
-                f.write(f"Research Results for: {research_topic}\n\n")
-                f.write(str(result))
-            
-            return result
-        
-    except Exception as e:
-        st.error(f"Research process failed: {str(e)}")
+    agents, tasks = create_agents_and_tasks(research_topic)
+    if not agents or not tasks:
+        print("Failed to create agents and tasks")
         return None
-
-def main():
-    st.title("South Asian History Research Assistant")
-    st.write("""
-    This tool conducts comprehensive research on South Asian historical topics using multiple specialized agents:
-    - Research Analyst: Historical and ethnographic analysis
-    - Policy & Media Analyst: Policy implementation and media representation analysis
-    - Source Curator: Source validation and citation management
-    """)
     
-    # Input section
-    st.header("Research Topic")
-    research_topic = st.text_input(
-        "Enter your South Asian history research topic:",
-        placeholder="e.g., The impact of partition on Bengali culture"
+    crew = Crew(
+        agents=agents,
+        tasks=tasks,
+        verbose=True,
+        process=Process.sequential,
+        memory=False,
+        max_rpm=30
     )
     
-    # Execute research when user submits
-    if st.button("Conduct Research"):
-        if not research_topic:
-            st.warning("Please enter a research topic")
-            return
+    try:
+        result = crew.kickoff()
+        
+        # Save results to file
+        output_dir = "research_output"
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
             
-        with st.spinner('Starting research process...'):
-            results = conduct_research(research_topic)
-            
-        if results:
-            # Display results in expandable sections
-            st.header("Research Results")
-            
-            # Split results into sections
-            sections = str(results).split("\n\nAnalysis from")
-            
-            for section in sections:
-                if section.strip():
-                    # Create a title for the section
-                    title = section.split("\n")[0] if ":" in section else "Research Results"
-                    with st.expander(title, expanded=True):
-                        st.markdown(section)
-            
-            # Show file save location
-            st.success(f"Results saved to: research_output/{research_topic.replace(' ', '_')}_research.txt")
-        else:
-            st.error("Research failed. Please check the error messages above.")
+        filename = f"{research_topic.replace(' ', '_')}_research.txt"
+        filepath = os.path.join(output_dir, filename)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(f"Research Results for: {research_topic}\n\n")
+            f.write(str(result))
+        
+        return result
+        
+    except Exception as e:
+        print(f"Research process failed: {str(e)}")
+        return None
 
 if __name__ == "__main__":
-    main()
+    topic = input("Enter your South Asian history research topic: ")
+    results = conduct_research(topic)
+    if results:
+        print("\nResearch Results:")
+        print(results)
+    else:
+        print("Research failed. Check error messages above.")
