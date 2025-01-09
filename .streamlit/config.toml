@@ -1,21 +1,15 @@
-[
-server
-]
+[server]
 headless = true
 enableCORS = true
 enableXsrfProtection = true
 
-[
-browser
-]
+[browser]
 serverAddress = "0.0.0.0"
 serverPort = 8501
 gatherUsageStats = false
 
-[
-theme
-]
-primaryColor = "#f97316"  # Orange color to match your app's theme
+[theme]
+primaryColor = "#f97316"
 backgroundColor = "#ffffff"
 secondaryBackgroundColor = "#f8f9fa"
 textColor = "#262730"

@@ -18,6 +18,8 @@ RUN pip install -r requirements.txt
 
 # Copy the application files
 COPY southAsianHistoryResearch_Render.py .
+# If you have additional Python files or modules
+COPY search_tools.py search_tools_serper.py ./
 
 # If you have a search_tools.py file, copy it as well
 # COPY search_tools.py .
