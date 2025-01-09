@@ -4,6 +4,25 @@ import streamlit as st
 from crewai import Agent, Task, Crew, Process, LLM
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from search_tools import search_api_tool, google_scholar_tool, news_archive_tool
+from pydantic import BaseModel
+from typing import List, Dict
+
+# class ResearchSource(BaseModel):
+#     title: str
+#     authors: List[str]
+#     year: int
+#     url: str
+#     citation: str
+#     snippet: str
+#     relevance_score: float
+
+# class SelectedSource(BaseModel):
+#     citation: str
+#     url: str
+#     doi: str
+#     key_quotes: List[str]
+#     impact_metrics: Dict[str, any]
+#     relevance: str
 
 class ResearchAgent:
     def __init__(self, role, goal, backstory, tools, llm=None):
@@ -170,93 +189,146 @@ def create_agents_and_tasks(research_topic):
         llm=ClaudeHaiku
     )
 
-    research_analysis = Task(
-        description=f"""Analyze {research_topic} and provide exactly 5-7 key findings:
-            - 2 major historical developments/events with dates
-            - 2 significant cultural transformations with concrete examples
-            - 2 key community experiences/perspectives with evidence
-            Format each finding in 2-3 sentences maximum.
-            Total response should not exceed 750 words.""",
-        agent=research_analyst,
-        expected_output="""Numbered list of 5-7 findings, grouped into:
-            HISTORICAL DEVELOPMENTS (1-2)
-            [Each with specific dates and significance]
+    # Task 1: Source Discovery and Logging
+    source_discovery_desc = f"""Search and log ALL scholarly sources related to {research_topic}:
             
-            CULTURAL TRANSFORMATIONS (3-4)
-            [Each with concrete examples and impact]
+            For each discovered source, create a structured entry with:
+            1. Full title and authors
+            2. Publication year
+            3. URL or DOI link
+            4. Brief content snippet
+            5. Initial relevance assessment
             
-            COMMUNITY EXPERIENCES (5-6)
-            [Each with evidence and perspectives]
+            Format each entry in clear markdown structure."""
+
+    source_discovery = Task(
+        description=source_discovery_desc,
+        agent=source_curator,
+        expected_output="""A comprehensive research log in markdown format:
             
-            Each finding should be precisely dated and referenced."""
+            # Complete Research Log
+            ## Source 1
+            - Title: [title]
+            - Authors: [authors]
+            - Year: [year]
+            - URL: [url]
+            - Snippet: [relevant excerpt]
+            - Initial Assessment: [relevance notes]
+            
+            [Repeat for all sources discovered]""",
+        output_file="complete_research_log.md",
+        async_execution=True
     )
 
-    policy_media_analysis = Task(
-        description=f"""Analyze {research_topic} and provide exactly 5-7 key findings:
-            - 2 critical policy developments and their implementation impacts
-            - 2 dominant media narratives with specific examples
-            - 2 key public discourse patterns with evidence
-            Format each finding in 2-3 sentences maximum.
-            Include specific dates, sources, or examples for each finding.
-            Total response should not exceed 750 words.""",
-        agent=policy_media_analyst,
-        expected_output="""Numbered list of 5-7 findings, grouped into:
-            POLICY DEVELOPMENTS (1-2)
-            [Each with implementation details and community impact]
+    # Task 2: Source Curation with Full Context
+    source_curation_desc = f"""From the research log, select and analyze the most relevant sources for {research_topic}:
             
-            MEDIA NARRATIVES (3-4)
-            [Each with specific examples and evolution over time]
+            For each selected source provide:
+            1. Full academic citation (Chicago style)
+            2. Direct URL or DOI link
+            3. 2-3 key quotes with page numbers
+            4. Impact metrics and scholarly authority
+            5. Source accessibility assessment
             
-            PUBLIC DISCOURSE (5-6)
-            [Each with evidence and analysis]
-            
-            Each finding must include dates and specific supporting evidence."""
-    )
+            Create two documentation sections:
+            1. Selected Sources (6 total)
+            2. Reference to Complete Research Log"""
 
     source_curation = Task(
-        description="""Compile exactly 6 key sources with complete citation information:
-            
-            For each source provide:
-            1. Full academic citation (Chicago style)
-            2. DOI or stable URL where available
-            3. 1-2 key quotes that support specific research claims
-            4. Publication impact metrics (citation count, journal ranking)
-            5. Brief note on source credibility/authority
-            
-            Organize sources into:
-            - 2 foundational academic sources (peer-reviewed journals/books)
-            - 2 primary sources (government documents, legal texts, archival materials)
-            - 2 contemporary sources (recent scholarship, current analyses)
-            
-            Total response not to exceed 1000 words.""",
+        description=source_curation_desc,
         agent=source_curator,
-        expected_output="""Structured bibliography with 6 fully cited sources:
+        context=[source_discovery],
+        expected_output="""# Curated Research Sources
+
+            ## FOUNDATIONAL SOURCES
+            1. [Full citation]
+            - URL: [direct link]
+            - Key Quotes: [quotes with page numbers]
+            - Impact: [metrics]
+            - Relevance: [assessment]
             
-            FOUNDATIONAL SOURCES (1-2)
-            [Full citations with Chicago style]
-            - Key quotes: "..."
-            - Impact metrics: X citations
-            - Relevance: Brief explanation
+            [Repeat for other categories]
             
-            PRIMARY SOURCES (3-4)
-            [Full citations]
-            - Archive/Location: Specific detail
-            - Key content: "..."
-            - Authority: Source validation
-            
-            CONTEMPORARY SOURCES (5-6)
-            [Full citations]
-            - Currency: Publication date/timeframe
-            - Key findings: "..."
-            - Scholarly impact: Recent citation count
-            
-            Each source must include all required elements for academic citation."""
+            ## RESEARCH LOG REFERENCE
+            [Summary of broader sources considered]""",
+        output_file="curated_sources.md"
     )
 
-    return [research_analyst, policy_media_analyst, source_curator], [
-        research_analysis,
-        policy_media_analysis,
-        source_curation
+    # Task 3: Research Analysis
+    research_analysis_desc = f"""Using the curated sources, analyze {research_topic} across these dimensions:
+            
+            1. Historical Context:
+            - 2 major developments with dates
+            - Academic interpretations of these events
+            - Supporting evidence from sources
+            
+            2. Scholarly Discourse:
+            - 2 key theoretical frameworks
+            - Research methodologies used
+            - Evidence of academic debate
+            
+            3. Current Understanding:
+            - 2 contemporary scholarly perspectives
+            - Emerging research directions
+            - Gaps in current literature"""
+
+    research_analysis = Task(
+        description=research_analysis_desc,
+        agent=research_analyst,
+        context=[source_curation],
+        expected_output="""Structured analysis linking to sources:
+            
+            HISTORICAL DEVELOPMENTS
+            [Events + Academic interpretation + Source evidence]
+            
+            SCHOLARLY FRAMEWORKS
+            [Theories + Methods + Debates]
+            
+            CURRENT PERSPECTIVES
+            [Contemporary views + Research directions]""",
+        output_file="research_analysis.md"
+    )
+
+    # Task 4: Policy and Media Analysis
+    policy_media_desc = f"""Analyze policy and media dimensions of {research_topic} using scholarly sources:
+            
+            1. Policy Framework:
+            - 2 key policy developments
+            - Academic analysis of implementation
+            - Evidence of impacts
+            
+            2. Media Representation:
+            - 2 dominant scholarly interpretations
+            - Research-based evidence
+            - Methodological approaches
+            
+            3. Public Discourse:
+            - 2 academic analyses of discourse
+            - Research methodologies used
+            - Scholarly debate points"""
+
+    policy_media_analysis = Task(
+        description=policy_media_desc,
+        agent=policy_media_analyst,
+        context=[source_curation, research_analysis],
+        expected_output="""Integrated analysis with scholarly evidence:
+            
+            POLICY ANALYSIS
+            [Developments + Academic interpretation + Evidence]
+            
+            MEDIA RESEARCH
+            [Interpretations + Methods + Findings]
+            
+            DISCOURSE ANALYSIS
+            [Academic perspectives + Research approaches]""",
+        output_file="policy_media_analysis.md"
+    )
+
+    return [source_curator, research_analyst, policy_media_analyst], [
+        source_discovery,  # First task - discovers and logs all sources
+        source_curation,   # Second task - curates the best sources with full analysis
+        research_analysis, # Third task - uses curated sources for research analysis
+        policy_media_analysis  # Final task - integrates policy and media perspectives
     ]
 
 def conduct_research(research_topic):
@@ -285,14 +357,25 @@ def conduct_research(research_topic):
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
                 
-            filename = f"{research_topic.replace(' ', '_')}_research.txt"
+            # Create a smart, concise filename from the research topic
+            # Extract first 3 significant words, remove common words
+            words = research_topic.lower().split()
+            common_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'}
+            key_terms = [word for word in words if word not in common_words][:3]
+            
+            # Add timestamp for uniqueness
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%y%m%d")
+            
+            # Combine terms with timestamp
+            filename = f"research_{timestamp}_{'_'.join(key_terms)}.txt"
             filepath = os.path.join(output_dir, filename)
             
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(f"Research Results for: {research_topic}\n\n")
                 f.write(str(result))
             
-            return result
+            return result, filename, filepath
         
     except Exception as e:
         st.error(f"Research process failed: {str(e)}")
@@ -321,9 +404,9 @@ def main():
             return
             
         with st.spinner('Starting research process...'):
-            results = conduct_research(research_topic)
+            results, filename, filepath = conduct_research(research_topic)
             
-        if results:
+        if results and filename and filepath:
             # Display results in expandable sections
             st.header("Research Results")
             
@@ -337,8 +420,18 @@ def main():
                     with st.expander(title, expanded=True):
                         st.markdown(section)
             
-            # Show file save location
-            st.success(f"Results saved to: research_output/{research_topic.replace(' ', '_')}_research.txt")
+            # Show file save location and download button
+            st.success(f"Results saved to: research_output/{filename}")
+            
+            # Add download button
+            with open(filepath, 'r', encoding='utf-8') as f:
+                file_content = f.read()
+                st.download_button(
+                    label="📥 Download Research Results",
+                    data=file_content,
+                    file_name=filename,
+                    mime="text/plain"
+                )
         else:
             st.error("Research failed. Please check the error messages above.")
 

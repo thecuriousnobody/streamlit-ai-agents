@@ -4,6 +4,52 @@ import time
 from crewai import Agent, Task, Crew, Process, LLM
 from langchain_groq import ChatGroq
 import sys
+
+# Modified environment handling
+def get_environment_variables():
+    """Get environment variables with fallback to Streamlit secrets"""
+    variables = {
+        'ANTHROPIC_API_KEY': None,
+        'SEARCH_API_KEY': None
+    }
+    
+    for key in variables.keys():
+        # Try getting from environment first
+        value = os.getenv(key)
+        
+        # If not in environment, try Streamlit secrets
+        if not value and hasattr(st, 'secrets'):
+            value = st.secrets.get(key)
+            
+        variables[key] = value
+    
+    return variables
+
+# Initialize environment
+env_vars = get_environment_variables()
+
+# Validate required environment variables
+required_vars = ['ANTHROPIC_API_KEY', 'SEARCH_API_KEY']
+missing_vars = [var for var in required_vars if not env_vars.get(var)]
+
+if missing_vars:
+    st.error(f"""
+        Missing required environment variables: {', '.join(missing_vars)}
+        
+        Please set these variables in your Render dashboard:
+        1. Go to your app settings in Render
+        2. Navigate to the Environment section
+        3. Add the required environment variables
+    """)
+    st.stop()
+
+
+import streamlit as st
+import os
+import time
+from crewai import Agent, Task, Crew, Process, LLM
+from langchain_groq import ChatGroq
+import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from search_tools import (
     search_api_tool,
