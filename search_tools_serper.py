@@ -5,6 +5,20 @@ from pydantic import BaseModel, Field
 from typing import Optional
 import streamlit as st
 
+def get_api_key(key_name: str) -> str:
+    """Get API key from environment variables with fallback to Streamlit secrets"""
+    # Try getting from environment first
+    value = os.getenv(key_name)
+    
+    # If not in environment, try Streamlit secrets
+    if not value and hasattr(st, 'secrets'):
+        value = st.secrets.get(key_name)
+        
+    if not value:
+        raise RuntimeError(f"Missing {key_name}. Set it in environment or secrets.toml")
+        
+    return value
+
 # Define input schemas
 class SerperSearchInput(BaseModel):
     """Input schema for the Internet Search tool."""
@@ -22,7 +36,7 @@ def serper_search(query: str) -> str:
             "q": query
         }
         headers = {
-            'X-API-KEY': st.secrets["SERPER_API_KEY"],
+            'X-API-KEY': get_api_key("SERPER_API_KEY"),
             'Content-Type': 'application/json'
         }
         
@@ -59,7 +73,7 @@ def serper_scholar_search(query: str, num_results: int = 20) -> str:
             "num": num_results
         }
         headers = {
-            'X-API-KEY': st.secrets["SERPER_API_KEY"],
+            'X-API-KEY': get_api_key("SERPER_API_KEY"),
             'Content-Type': 'application/json'
         }
         
