@@ -43,13 +43,7 @@ if missing_vars:
     st.stop()
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from search_tools import (
-    search_api_tool,
-    google_scholar_tool,
-    news_archive_tool,
-    local_archives_tool,
-    legal_database_tool
-)
+
 from search_tools_serper import serper_search_tool, serper_scholar_tool
 
 try:
@@ -77,7 +71,7 @@ except Exception as e:
         3. Add the following secrets:
         ```toml
         ANTHROPIC_API_KEY = "your-anthropic-api-key"
-        SEARCH_API_KEY = "your-searchapi-key"
+        SERPER_API_KEY = "your-searchapi-key"
         ```
     """)
     st.stop()
