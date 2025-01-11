@@ -1,17 +1,8 @@
 import os
 import requests
-from langchain.tools import Tool
-from pydantic import BaseModel, Field
-# from pydantic.v1 import BaseModel, Field
+from langchain.tools import Tool, StructuredTool
 from typing import Optional
 import streamlit as st
-
-class SerperSearchSchema(BaseModel):
-    query: str = Field(description="The search query to execute")
-
-class SerperScholarSearchSchema(BaseModel):
-    query: str = Field(description="The academic search query to execute")
-    num_results: Optional[int] = Field(default=20, description="Number of results to return")
 
 def serper_search(query: str) -> str:
     try:
@@ -121,17 +112,15 @@ def serper_scholar_search(query: str, num_results: int = 20) -> str:
     except Exception as e:
         return f"An error occurred while searching scholar: {str(e)}"
 
-# Create tools using Tool class for consistency with search_tools.py
+# Create tools using Tool and StructuredTool
 serper_search_tool = Tool(
     name="Internet Search",
-    func=serper_search,
+    func=lambda query: serper_search(query),
     description="Search the internet for current information using Serper API.",
-    args_schema=SerperSearchSchema
 )
 
-serper_scholar_tool = Tool(
-    name="Scholar Search",
+serper_scholar_tool = StructuredTool.from_function(
     func=serper_scholar_search,
-    description="Search for academic papers and scholarly content using Serper API.",
-    args_schema=SerperScholarSearchSchema
+    name="Scholar Search",
+    description="Search for academic papers and scholarly content using Serper API."
 )
