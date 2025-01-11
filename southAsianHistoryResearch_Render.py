@@ -9,7 +9,7 @@ def get_environment_variables():
     """Get environment variables with fallback to Streamlit secrets"""
     variables = {
         'ANTHROPIC_API_KEY': None,
-        'SEARCH_API_KEY': None
+        'SERPER_API_KEY': None
     }
     
     for key in variables.keys():
@@ -28,7 +28,7 @@ def get_environment_variables():
 env_vars = get_environment_variables()
 
 # Validate required environment variables
-required_vars = ['ANTHROPIC_API_KEY', 'SEARCH_API_KEY']
+required_vars = ['ANTHROPIC_API_KEY', 'SERPER_API_KEY']
 missing_vars = [var for var in required_vars if not env_vars.get(var)]
 
 if missing_vars:
