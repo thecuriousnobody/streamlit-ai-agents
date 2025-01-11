@@ -1,8 +1,8 @@
 import os
 import requests
 from langchain.tools import Tool
-# from pydantic import BaseModel, Field
-from pydantic.v1 import BaseModel, Field
+from pydantic import BaseModel, Field
+# from pydantic.v1 import BaseModel, Field
 from typing import Optional
 import streamlit as st
 
