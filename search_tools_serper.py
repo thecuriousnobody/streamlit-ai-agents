@@ -1,8 +1,19 @@
 import os
 import requests
-from langchain.tools import Tool, StructuredTool
+from langchain.tools import Tool
+from pydantic import BaseModel, Field
 from typing import Optional
 import streamlit as st
+
+# Define input schemas
+class SerperSearchInput(BaseModel):
+    """Input schema for the Internet Search tool."""
+    query: str = Field(..., description="The search query to execute")
+
+class SerperScholarInput(BaseModel):
+    """Input schema for the Scholar Search tool."""
+    query: str = Field(..., description="The academic search query to execute")
+    num_results: Optional[int] = Field(default=20, description="Number of results to return")
 
 def serper_search(query: str) -> str:
     try:
@@ -112,15 +123,25 @@ def serper_scholar_search(query: str, num_results: int = 20) -> str:
     except Exception as e:
         return f"An error occurred while searching scholar: {str(e)}"
 
-# Create tools using Tool and StructuredTool
+# Create tools with flexible input handling
+def search_wrapper(query: str) -> str:
+    """Wrapper to handle string input"""
+    return serper_search(query)
+
+def scholar_wrapper(**kwargs) -> str:
+    """Wrapper to handle both single and multiple parameters"""
+    query = kwargs.get('query')
+    num_results = kwargs.get('num_results', 20)
+    return serper_scholar_search(query, num_results)
+
 serper_search_tool = Tool(
     name="Internet Search",
-    func=lambda query: serper_search(query),
-    description="Search the internet for current information using Serper API.",
+    func=search_wrapper,
+    description="Search the internet for current information using Serper API."
 )
 
-serper_scholar_tool = StructuredTool.from_function(
-    func=serper_scholar_search,
+serper_scholar_tool = Tool(
     name="Scholar Search",
+    func=scholar_wrapper,
     description="Search for academic papers and scholarly content using Serper API."
 )
