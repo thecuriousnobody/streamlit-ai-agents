@@ -1,7 +1,6 @@
 import os
 import requests
 from langchain.tools import Tool
-from pydantic import BaseModel, Field
 from typing import Optional
 import streamlit as st
 
@@ -18,16 +17,6 @@ def get_api_key(key_name: str) -> str:
         raise RuntimeError(f"Missing {key_name}. Set it in environment or secrets.toml")
         
     return value
-
-# Define input schemas
-class SerperSearchInput(BaseModel):
-    """Input schema for the Internet Search tool."""
-    query: str = Field(..., description="The search query to execute")
-
-class SerperScholarInput(BaseModel):
-    """Input schema for the Scholar Search tool."""
-    query: str = Field(..., description="The academic search query to execute")
-    num_results: Optional[int] = Field(default=20, description="Number of results to return")
 
 def serper_search(query: str) -> str:
     try:
@@ -64,12 +53,9 @@ def serper_search(query: str) -> str:
 
 def serper_scholar_search(query: str, num_results: int = 20) -> str:
     try:
-        # Modify the query to target scholarly content
-        scholarly_query = f"{query} site:scholar.google.com"
-        
-        url = "https://google.serper.dev/search"
+        url = "https://google.serper.dev/scholar"
         payload = {
-            "q": scholarly_query,
+            "q": query,
             "num": num_results
         }
         headers = {
@@ -84,49 +70,21 @@ def serper_scholar_search(query: str, num_results: int = 20) -> str:
         # Process and format the results
         formatted_results = []
         
-        # Handle organic results
+        # Handle scholar results
         for item in data.get('organic', []):
             title = item.get('title', 'No title')
             link = item.get('link', 'No link')
             snippet = item.get('snippet', 'No snippet')
-            
-            # Extract year and citations from the title and snippet
-            year = "N/A"
-            citations = "N/A"
-            
-            # Look for year in title and snippet
-            for text in [title, snippet]:
-                if not year or year == "N/A":
-                    words = text.split()
-                    for word in words:
-                        # Clean the word from any punctuation
-                        clean_word = ''.join(c for c in word if c.isdigit())
-                        if clean_word.isdigit() and 1900 < int(clean_word) < 2025:
-                            year = clean_word
-                            break
-            
-            # Look for citations in snippet
-            snippet_lower = snippet.lower()
-            citation_patterns = ['cited by', 'citations:', 'citations -']
-            for pattern in citation_patterns:
-                if pattern in snippet_lower:
-                    try:
-                        pattern_index = snippet_lower.index(pattern)
-                        # Look at the next few words for a number
-                        following_text = snippet[pattern_index:pattern_index + 30].split()
-                        for word in following_text:
-                            clean_word = ''.join(c for c in word if c.isdigit())
-                            if clean_word.isdigit():
-                                citations = clean_word
-                                break
-                    except:
-                        continue
+            publication = item.get('publication', 'N/A')
+            year = item.get('year', 'N/A')
+            citations = item.get('citations', 'N/A')
             
             formatted_results.append(f"Title: {title}")
-            formatted_results.append(f"Link: {link}")
+            formatted_results.append(f"Publication: {publication}")
             formatted_results.append(f"Year: {year}")
             formatted_results.append(f"Citations: {citations}")
-            formatted_results.append(f"Snippet: {snippet}")
+            formatted_results.append(f"Link: {link}")
+            formatted_results.append(f"Summary: {snippet}")
             formatted_results.append("---")
         
         if not formatted_results:
@@ -137,17 +95,25 @@ def serper_scholar_search(query: str, num_results: int = 20) -> str:
     except Exception as e:
         return f"An error occurred while searching scholar: {str(e)}"
 
-# Create tools with flexible input handling
-def search_wrapper(query: str) -> str:
-    """Wrapper to handle string input"""
-    return serper_search(query)
+def search_wrapper(input_data):
+    """Wrapper to handle different input formats"""
+    if isinstance(input_data, str):
+        return serper_search(input_data)
+    if isinstance(input_data, dict):
+        return serper_search(input_data.get('query', ''))
+    return serper_search(str(input_data))
 
-def scholar_wrapper(**kwargs) -> str:
-    """Wrapper to handle both single and multiple parameters"""
-    query = kwargs.get('query')
-    num_results = kwargs.get('num_results', 20)
-    return serper_scholar_search(query, num_results)
+def scholar_wrapper(input_data):
+    """Wrapper to handle different input formats"""
+    if isinstance(input_data, str):
+        return serper_scholar_search(input_data)
+    if isinstance(input_data, dict):
+        query = input_data.get('query', '')
+        num_results = input_data.get('num_results', 20)
+        return serper_scholar_search(query, num_results)
+    return serper_scholar_search(str(input_data))
 
+# Create tools using Tool class
 serper_search_tool = Tool(
     name="Internet Search",
     func=search_wrapper,

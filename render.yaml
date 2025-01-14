@@ -1,8 +1,9 @@
 services:
+  # Original version
   - type: web
     name: south-asian-history-research
     env: python
-    region: ohio  # Adding a specific region helps with latency
+    region: ohio
     buildCommand: |
       pip install -r requirements.txt
       mkdir -p ~/.streamlit
@@ -13,7 +14,7 @@ services:
     startCommand: streamlit run southAsianHistoryResearch_Render.py --server.port $PORT --server.address 0.0.0.0
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.16  # Specifying Python version ensures consistency
+        value: 3.9.16
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: SEARCH_API_KEY
@@ -21,9 +22,39 @@ services:
       - key: PYTHONPATH
         value: .
     plan: starter
-    healthCheckPath: /_stcore/health  # Helps Render monitor your application
-    autoDeploy: true  # Enables automatic deployments when you push to GitHub
+    healthCheckPath: /_stcore/health
+    autoDeploy: true
     scaling:
       minInstances: 1
       maxInstances: 1
-      targetMemoryPercent: 75  # Helps manage resource usage
+      targetMemoryPercent: 75
+
+  # Enhanced version
+  - type: web
+    name: south-asian-history-research-pro
+    env: python
+    region: ohio
+    buildCommand: |
+      pip install -r requirements.txt
+      mkdir -p ~/.streamlit
+      echo "[server]" > ~/.streamlit/config.toml
+      echo "headless = true" >> ~/.streamlit/config.toml
+      echo "enableCORS = true" >> ~/.streamlit/config.toml
+      echo "enableXsrfProtection = true" >> ~/.streamlit/config.toml
+    startCommand: streamlit run southAsianHistoryResearch_Enhanced.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.16
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SERPER_API_KEY
+        sync: false
+      - key: PYTHONPATH
+        value: .
+    plan: starter
+    healthCheckPath: /_stcore/health
+    autoDeploy: true
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+      targetMemoryPercent: 75
