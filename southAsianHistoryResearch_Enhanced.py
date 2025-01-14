@@ -166,7 +166,7 @@ def create_agents_and_tasks(research_topic):
                 Format each finding in 2-3 sentences maximum.
                 Total response should not exceed 750 words.""",
             agent=research_analyst,
-            expected_output="Numbered list of 5-7 findings with specific dates and evidence"
+            expected_output="Numbered list of 7-10 findings with specific dates and evidence"
         )
 
         policy_media_analysis = Task(
@@ -178,7 +178,7 @@ def create_agents_and_tasks(research_topic):
                 Include specific dates, sources, or examples for each finding.
                 Total response should not exceed 750 words.""",
             agent=policy_media_analyst,
-            expected_output="Numbered list of 5-7 findings with examples and impacts",
+            expected_output="Numbered list of 7-10 findings with examples and impacts",
             context=[research_analysis]
         )
 

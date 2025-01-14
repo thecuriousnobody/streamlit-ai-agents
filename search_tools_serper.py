@@ -18,7 +18,7 @@ def get_api_key(key_name: str) -> str:
         
     return value
 
-def serper_search(query: str) -> str:
+def serper_search(query: str, result_as_answer: bool = True) -> str:
     try:
         url = "https://google.serper.dev/search"
         payload = {
@@ -46,12 +46,14 @@ def serper_search(query: str) -> str:
         if not formatted_results:
             return "No results found or error in search."
             
-        return "\n".join(formatted_results)
+        result = "\n".join(formatted_results)
+        return result if result_as_answer else result
         
     except Exception as e:
-        return f"An error occurred while searching: {str(e)}"
+        error_msg = f"An error occurred while searching: {str(e)}"
+        return error_msg if result_as_answer else error_msg
 
-def serper_scholar_search(query: str, num_results: int = 20) -> str:
+def serper_scholar_search(query: str, num_results: int = 20, result_as_answer: bool = True) -> str:
     try:
         url = "https://google.serper.dev/scholar"
         payload = {
@@ -90,38 +92,49 @@ def serper_scholar_search(query: str, num_results: int = 20) -> str:
         if not formatted_results:
             return "No scholarly results found or error in search."
             
-        return "\n".join(formatted_results)
+        result = "\n".join(formatted_results)
+        return result if result_as_answer else result
         
     except Exception as e:
-        return f"An error occurred while searching scholar: {str(e)}"
+        error_msg = f"An error occurred while searching scholar: {str(e)}"
+        return error_msg if result_as_answer else error_msg
 
 def search_wrapper(input_data):
-    """Wrapper to handle different input formats"""
+    """Wrapper to handle different input formats with result_as_answer support"""
+    result_as_answer = True  # Default to True for direct tool output
+    
     if isinstance(input_data, str):
-        return serper_search(input_data)
+        return serper_search(input_data, result_as_answer=result_as_answer)
     if isinstance(input_data, dict):
-        return serper_search(input_data.get('query', ''))
-    return serper_search(str(input_data))
+        query = input_data.get('query', '')
+        result_as_answer = input_data.get('result_as_answer', True)
+        return serper_search(query, result_as_answer=result_as_answer)
+    return serper_search(str(input_data), result_as_answer=result_as_answer)
 
 def scholar_wrapper(input_data):
-    """Wrapper to handle different input formats"""
+    """Wrapper to handle different input formats with result_as_answer support"""
+    result_as_answer = True  # Default to True for direct tool output
+    
     if isinstance(input_data, str):
-        return serper_scholar_search(input_data)
+        return serper_scholar_search(input_data, result_as_answer=result_as_answer)
     if isinstance(input_data, dict):
         query = input_data.get('query', '')
         num_results = input_data.get('num_results', 20)
-        return serper_scholar_search(query, num_results)
-    return serper_scholar_search(str(input_data))
+        result_as_answer = input_data.get('result_as_answer', True)
+        return serper_scholar_search(query, num_results, result_as_answer=result_as_answer)
+    return serper_scholar_search(str(input_data), result_as_answer=result_as_answer)
 
-# Create tools using Tool class
+# Create tools using Tool class with result_as_answer support
 serper_search_tool = Tool(
     name="Internet Search",
     func=search_wrapper,
-    description="Search the internet for current information using Serper API."
+    description="Search the internet for current information using Serper API.",
+    return_direct=True  # This ensures the tool output is returned directly
 )
 
 serper_scholar_tool = Tool(
     name="Scholar Search",
     func=scholar_wrapper,
-    description="Search for academic papers and scholarly content using Serper API."
+    description="Search for academic papers and scholarly content using Serper API.",
+    return_direct=True  # This ensures the tool output is returned directly
 )
