@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import time
 import sys
-import traceback
 from datetime import datetime
 from crewai import Agent, Task, Crew, Process, LLM
 
@@ -97,31 +96,16 @@ if 'is_processing' not in st.session_state:
     st.session_state.is_processing = False
 if 'error_message' not in st.session_state:
     st.session_state.error_message = ""
-if 'user_id' not in st.session_state:
-    st.session_state.user_id = f"user_{os.urandom(4).hex()}"
-if 'task_outputs' not in st.session_state:
-    st.session_state.task_outputs = {}
-if 'debug_info' not in st.session_state:
-    st.session_state.debug_info = []
 if 'start_time' not in st.session_state:
     st.session_state.start_time = None
 if 'task_progress' not in st.session_state:
     st.session_state.task_progress = 0
-
-def log_debug_info(message, level="info"):
-    """Add timestamped debug information"""
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    info = {
-        "timestamp": timestamp,
-        "message": message,
-        "level": level
-    }
-    st.session_state.debug_info.append(info)
+if 'task_outputs' not in st.session_state:
+    st.session_state.task_outputs = {}
 
 def create_agents_and_tasks(research_topic):
     """Create research agents and tasks."""
     try:
-        log_debug_info("Creating research agents...")
         research_analyst = Agent(
             role="Research Analyst",
             goal="""Conduct comprehensive historical and ethnographic analysis of South Asian topics,
@@ -157,7 +141,6 @@ def create_agents_and_tasks(research_topic):
             verbose=True
         )
 
-        log_debug_info("Creating research tasks...")
         research_analysis = Task(
             description=f"""Analyze {research_topic} and provide exactly 5-7 key findings:
                 - 2 major historical developments/events with dates
@@ -166,7 +149,7 @@ def create_agents_and_tasks(research_topic):
                 Format each finding in 2-3 sentences maximum.
                 Total response should not exceed 750 words.""",
             agent=research_analyst,
-            expected_output="Numbered list of 7-10 findings with specific dates and evidence"
+            expected_output="Numbered list of 5-7 findings with specific dates and evidence"
         )
 
         policy_media_analysis = Task(
@@ -178,7 +161,7 @@ def create_agents_and_tasks(research_topic):
                 Include specific dates, sources, or examples for each finding.
                 Total response should not exceed 750 words.""",
             agent=policy_media_analyst,
-            expected_output="Numbered list of 7-10 findings with examples and impacts",
+            expected_output="Numbered list of 5-7 findings with examples and impacts",
             context=[research_analysis]
         )
 
@@ -205,11 +188,8 @@ def create_agents_and_tasks(research_topic):
         )
 
         tasks = [research_analysis, policy_media_analysis, source_curation]
-        
-        log_debug_info("Agents and tasks created successfully")
         return [research_analyst, policy_media_analyst, source_curator], tasks
     except Exception as e:
-        log_debug_info(f"Error creating agents: {str(e)}", "error")
         st.error(f"Error creating agents: {str(e)}")
         return None, None
 
@@ -280,7 +260,6 @@ def start_research(research_topic):
                     st.session_state.policy_media_status = "✅ Policy & Media Analysis Complete"
                     st.session_state.sources_status = "✅ Source Curation Complete"
                     st.session_state.task_progress = 100
-                    log_debug_info(f"Error processing sections: {str(e)}", "warning")
                 
                 # Store task outputs
                 for task in tasks:
@@ -311,7 +290,6 @@ def start_research(research_topic):
                 st.session_state.research_status = "❌ Research Analysis Failed"
                 st.session_state.policy_media_status = "❌ Policy & Media Analysis Failed"
                 st.session_state.sources_status = "❌ Source Curation Failed"
-                log_debug_info(f"Research failed: {str(e)}", "error")
             time.sleep(2 * retry_count)
             
     st.session_state.is_processing = False
@@ -324,7 +302,7 @@ def format_time(seconds):
 
 def main():
     st.title("📚 South Asian History Research Pro")
-    st.write("Enhanced research analysis with detailed progress tracking and debug information!")
+    st.write("Enhanced research analysis with detailed progress tracking!")
 
     # Research topic input
     research_topic = st.text_input("Enter your research topic", placeholder="e.g., Cultural transformation in Assam")
@@ -398,17 +376,6 @@ def main():
                             st.write("Raw Output:")
                             st.code(task_output['raw'])
 
-    # Debug Information (Collapsible)
-    if st.session_state.debug_info:
-        with st.expander("🔍 Debug Information"):
-            for info in st.session_state.debug_info:
-                if info["level"] == "error":
-                    st.error(f"{info['timestamp']}: {info['message']}")
-                elif info["level"] == "warning":
-                    st.warning(f"{info['timestamp']}: {info['message']}")
-                else:
-                    st.info(f"{info['timestamp']}: {info['message']}")
-
     st.divider()
     
     # How to use section
@@ -428,7 +395,6 @@ def main():
             ### Pro Features:
             - ⏱️ Real-time progress tracking
             - 📊 Results analytics
-            - 🔍 Debug information
             - 💾 Formatted downloads
         """)
 
