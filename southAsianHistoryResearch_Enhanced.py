@@ -566,13 +566,43 @@ def start_research(research_topic):
                 crew = Crew(
                     agents=agents,
                     tasks=tasks,
-                    process=Process.sequential,
                     verbose=True,
-                    callbacks=callback_handler
+                    process=Process.sequential,
+                    memory=False,
+                    max_rpm=30
                 )
                 
                 # Execute all tasks
-                results = crew.kickoff()
+                output = crew.kickoff()
+                
+                if output and str(output).strip():
+                    output_str = str(output)
+                    
+                    # Process output sections
+                    sections = output_str.split("# Agent:")
+                    if len(sections) > 1:
+                        for section in sections[1:]:
+                            if "Research Analyst" in section:
+                                st.session_state.research_status = "✅ Research Analysis Complete"
+                                st.session_state.policy_media_status = "🔄 Analyzing policy and media..."
+                            elif "Policy & Media Analyst" in section:
+                                st.session_state.policy_media_status = "✅ Policy & Media Analysis Complete"
+                                st.session_state.sources_status = "🔄 Curating sources..."
+                            elif "Source Curator" in section:
+                                st.session_state.sources_status = "✅ Source Curation Complete"
+                    
+                    # Store results in session state
+                    st.session_state.research_results = output_str.strip()
+                    
+                    # Process and store individual task outputs
+                    for task in tasks:
+                        if hasattr(task, 'output') and task.output:
+                            st.session_state.task_outputs[task.description] = {
+                                'description': task.description,
+                                'summary': task.output.summary if hasattr(task.output, 'summary') else None,
+                                'raw': task.output.raw if hasattr(task.output, 'raw') else None,
+                                'json_dict': task.output.json_dict if hasattr(task.output, 'json_dict') else None
+                            }
                 
                 # Process and display results
                 with research_container:
