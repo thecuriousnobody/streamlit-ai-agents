@@ -140,38 +140,38 @@ def create_agents_and_tasks(research_topic):
         )
 
         research_analysis = Task(
-            description=f"""Analyze {research_topic} and provide exactly 5-7 key findings:
-                - 2 major historical developments/events with dates
-                - 2 significant cultural transformations with concrete examples
-                - 2 key community experiences/perspectives with evidence
+            description=f"""Analyze {research_topic} and provide exactly 10-15 key findings:
+                - 5 major historical developments/events with dates
+                - 5 significant cultural transformations with concrete examples
+                - 5 key community experiences/perspectives with evidence
                 Format each finding in 2-3 sentences maximum.
                 Total response should not exceed 750 words.""",
             agent=research_analyst,
-            expected_output="""Numbered list of 5-7 findings, grouped into:
-                HISTORICAL DEVELOPMENTS (1-2)
-                CULTURAL TRANSFORMATIONS (3-4)
-                COMMUNITY EXPERIENCES (5-6)
+            expected_output="""Numbered list of 10-15 findings, grouped into:
+                HISTORICAL DEVELOPMENTS (1-5)
+                CULTURAL TRANSFORMATIONS (6-10)
+                COMMUNITY EXPERIENCES (11-15)
                 Each finding includes specific dates, examples, or evidence."""
         )
 
         policy_media_analysis = Task(
-            description=f"""Analyze {research_topic} and provide exactly 5-7 key findings:
-                - 2 critical policy developments and their implementation impacts
-                - 2 dominant media narratives with specific examples
-                - 2 key public discourse patterns with evidence
+            description=f"""Analyze {research_topic} and provide exactly 10-15 key findings:
+                - 5 critical policy developments and their implementation impacts
+                - 5 dominant media narratives with specific examples
+                - 5 key public discourse patterns with evidence
                 Format each finding in 2-3 sentences maximum.
                 Include specific dates, sources, or examples for each finding.
                 Total response should not exceed 750 words.""",
             agent=policy_media_analyst,
-            expected_output="""Numbered list of 5-7 findings, grouped into:
-                POLICY DEVELOPMENTS (1-2)
-                MEDIA NARRATIVES (3-4)
-                PUBLIC DISCOURSE (5-6)
+            expected_output="""Numbered list of 10-15 findings, grouped into:
+                POLICY DEVELOPMENTS (1-5)
+                MEDIA NARRATIVES (6-10)
+                PUBLIC DISCOURSE (11-15)
                 Each finding includes specific examples and impacts."""
         )
 
         source_curation = Task(
-            description="""Compile exactly 6 key sources with complete citation information:
+            description="""Compile exactly 15 key sources with complete citation information:
                 
                 For each source provide:
                 1. Full academic citation (Chicago style)
@@ -181,30 +181,30 @@ def create_agents_and_tasks(research_topic):
                 5. Brief note on source credibility/authority
                 
                 Organize sources into:
-                - 2 foundational academic sources (peer-reviewed journals/books)
-                - 2 primary sources (government documents, legal texts, archival materials)
-                - 2 contemporary sources (recent scholarship, current analyses)
+                - 5 foundational academic sources (peer-reviewed journals/books)
+                - 5 primary sources (government documents, legal texts, archival materials)
+                - 5 contemporary sources (recent scholarship, current analyses)
                 
                 Total response not to exceed 1000 words.
                 Each source must include all citation elements for proper academic reference.""",
             agent=source_curator,
-            expected_output="""Structured bibliography with 6 fully cited sources:
+            expected_output="""Structured bibliography with 15 fully cited sources:
                 
-                FOUNDATIONAL SOURCES (1-2)
+                FOUNDATIONAL SOURCES (1-5)
                 [Full citation]
                 - Direct Link: URL to paper/document (if available)
                 - Key quotes: "..."
                 - Impact metrics: X citations
                 - Relevance: Brief explanation
                 
-                PRIMARY SOURCES (3-4)
+                PRIMARY SOURCES (6-10)
                 [Full citation]
                 - Direct Link: URL to document/archive (if available)
                 - Archive/Location: Specific detail
                 - Key content: "..."
                 - Authority: Source validation
                 
-                CONTEMPORARY SOURCES (5-6)
+                CONTEMPORARY SOURCES (11-15)
                 [Full citation]
                 - Direct Link: URL to paper/document (if available)
                 - Currency: Publication date/timeframe
