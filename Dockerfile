@@ -1,5 +1,5 @@
 # Use Python 3.10 slim image as base
-FROM python:3.10-slim
+FROM python:3.12.3-slim
 
 # Set up working directory
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # Copy the application files
-COPY southAsianHistoryResearch_Render.py .
+COPY podcastEditorAssistant_streamLit.py .
 # If you have additional Python files or modules
 COPY search_tools.py search_tools_serper.py ./
 
@@ -32,4 +32,4 @@ COPY .streamlit/config.toml /root/.streamlit/config.toml
 EXPOSE 8501
 
 # Command to run the application
-CMD ["streamlit", "run", "southAsianHistoryResearch_Render.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "podcastEditorAssistant_streamLit.py", "--server.port=8501", "--server.address=0.0.0.0"]
