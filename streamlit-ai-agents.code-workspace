@@ -1,0 +1,17 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "python.defaultInterpreterPath": "/Users/rajeevkumar/.pyenv/versions/3.12.3/envs/streamlit_ai_agents_env/bin/python",
+        "python.analysis.extraPaths": [
+            "/Users/rajeevkumar/.pyenv/versions/3.12.3/envs/streamlit_ai_agents_env/lib/python3.12/site-packages"
+        ],
+        "files.exclude": {
+            "**/__pycache__": true,
+            "**/.pytest_cache": true
+        }
+    }
+}
