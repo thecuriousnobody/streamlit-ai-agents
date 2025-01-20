@@ -16,9 +16,9 @@ def get_environment_variables():
         # Try getting from environment first
         value = os.getenv(key)
         
-        # # If not in environment, try Streamlit secrets
-        # if not value and hasattr(st, 'secrets'):
-        #     value = st.secrets.get(key)
+        # If not in environment, try Streamlit secrets
+        if not value and hasattr(st, 'secrets'):
+            value = st.secrets.get(key)
             
         variables[key] = value
     
