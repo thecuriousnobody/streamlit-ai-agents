@@ -1,5 +1,34 @@
 services:
   - type: web
+    name: podcast-editor-assistant
+    env: python
+    region: ohio
+    buildCommand: |
+      pip install -r requirements.txt
+      mkdir -p ~/.streamlit
+      echo "[server]" > ~/.streamlit/config.toml
+      echo "headless = true" >> ~/.streamlit/config.toml
+      echo "enableCORS = true" >> ~/.streamlit/config.toml
+      echo "enableXsrfProtection = true" >> ~/.streamlit/config.toml
+    startCommand: streamlit run podcastEditorAssistant_streamLit.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.16
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SERPER_API_KEY
+        sync: false
+      - key: PYTHONPATH
+        value: .
+    plan: starter
+    healthCheckPath: /_stcore/health
+    autoDeploy: true
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+      targetMemoryPercent: 75
+
+  - type: web
     name: south-asian-history-research
     env: python
     region: ohio  # Adding a specific region helps with latency
