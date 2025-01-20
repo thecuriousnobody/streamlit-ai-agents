@@ -28,31 +28,4 @@ services:
       maxInstances: 1
       targetMemoryPercent: 75
 
-  - type: web
-    name: south-asian-history-research
-    env: python
-    region: ohio  # Adding a specific region helps with latency
-    buildCommand: |
-      pip install -r requirements.txt
-      mkdir -p ~/.streamlit
-      echo "[server]" > ~/.streamlit/config.toml
-      echo "headless = true" >> ~/.streamlit/config.toml
-      echo "enableCORS = true" >> ~/.streamlit/config.toml
-      echo "enableXsrfProtection = true" >> ~/.streamlit/config.toml
-    startCommand: streamlit run southAsianHistoryResearch_Render.py --server.port $PORT --server.address 0.0.0.0
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.9.16  # Specifying Python version ensures consistency
-      - key: ANTHROPIC_API_KEY
-        sync: false
-      - key: SEARCH_API_KEY
-        sync: false
-      - key: PYTHONPATH
-        value: .
-    plan: starter
-    healthCheckPath: /_stcore/health  # Helps Render monitor your application
-    autoDeploy: true  # Enables automatic deployments when you push to GitHub
-    scaling:
-      minInstances: 1
-      maxInstances: 1
-      targetMemoryPercent: 75  # Helps manage resource usage
+
