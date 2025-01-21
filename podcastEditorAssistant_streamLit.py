@@ -49,14 +49,14 @@ from search_tools_serper import serper_search_tool, serper_scholar_tool
 try:
     # Initialize LLM instances
     ClaudeSonnet = LLM(
-        model="claude-3-5-sonnet-20241022",
+        model="anthropic/claude-3-5-sonnet-20241022",
         api_key=os.getenv("ANTHROPIC_API_KEY"),
         max_tokens=8192,
         temperature=0.6
     )
     
     ClaudeHaiku = LLM(
-        model="claude-3-5-haiku-20241022",
+        model="anthropic/claude-3-5-haiku-20241022",
         api_key=os.getenv("ANTHROPIC_API_KEY"),
         max_tokens=8192,
         temperature=0.6
